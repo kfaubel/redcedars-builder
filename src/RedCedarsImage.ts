@@ -1,14 +1,15 @@
 import stream from 'stream';
 import jpeg from 'jpeg-js';
+import fs from 'fs';
 
 const pure = require('pureimage');
 
-import { BaseballStandingsData, StandingJSON, Conference, Division, TeamData } from './RedCedarsData';
+import { RedCedarsData, StationData } from './RedCedarsData';
 
 const fontDir = __dirname + "/../fonts";
 
-export class BaseballStandingsImage {
-    private standingsData: any;
+export class RedCedarsImage {
+    private redCedarsJson: any;
 
     private logger;
 
@@ -20,29 +21,29 @@ export class BaseballStandingsImage {
         this.logger = logger;
     }
 
-    public async getImageStream(conf: string, div: string) {
-        const title: string = `${conf} ${div}`;
+    public async getImageStream(url) {
+        const title: string = `Conditions at Red Cedars`;
         
-        this.standingsData = new BaseballStandingsData(this.logger);
+        const redCedarsData: RedCedarsData = new RedCedarsData(this.logger);
 
-        const standingsArray: StandingJSON = await  this.standingsData.getStandingData();
+        const stationData: StationData = await  redCedarsData.getStationData(url);
+        const redCedarsJson = {};
 
-        if (this.standingsData === undefined) {
-            this.logger.warn("BaseballStandingsImage: Failed to get data, no image available.\n")
+        if (redCedarsJson === undefined) {
+            this.logger.warn("RedCedarsImage: Failed to get data, no image available.\n")
             return null;
         }
 
         const imageHeight: number = 1080; // 800;
         const imageWidth: number  = 1920; // 1280;
 
-        const backgroundColor: string     = 'rgb(105, 135,  135)';  // Fenway Green
-        const boxBackgroundColor: string  = 'rgb(95,  121,  120)';  // Fenway Green - Dark p.setColor(Color.rgb(0x5F, 0x79, 0x78));
-        const titleColor: string          = 'rgb(255, 255,  255)'; 
-        const borderColor: string         = 'rgb(255, 255,  255)';
+        const backgroundColor: string     = 'rgb(0,   0,    40)';   // Dark blue
+        const textColor: string           = 'rgb(40,  200,  80)'; 
         
-        const largeFont: string  = "140px 'OpenSans-Bold'";   // Title
-        const mediumFont: string = "100px 'OpenSans-Bold'";   // Other text
-        const smallFont: string  = "24px 'OpenSans-Bold'";   
+        const mediumFontPointSize: number = 60;
+        const largeFont: string  = "90px 'OpenSans-Bold'";     // Title
+        const mediumFont: string = "50px 'OpenSans-Regular";   // Other text
+        const smallFont: string  = "30px 'OpenSans-Regular'";  // Note at the bottom
 
         const fntBold     = pure.registerFont(fontDir + '/OpenSans-Bold.ttf','OpenSans-Bold');
         const fntRegular  = pure.registerFont(fontDir + '/OpenSans-Regular.ttf','OpenSans-Regular');
@@ -52,35 +53,24 @@ export class BaseballStandingsImage {
         fntRegular.loadSync();
         fntRegular2.loadSync();
 
-        const regularStroke: number     = 2;
-        const heavyStroke: number       = 30;
-        const veryHeavyStroke: number   = 22;
-        const borderWidth: number       = 20;
+        const titleY: number            = 120; // down from the top of the image
 
-        const titleOffset: number       = 140; // down from the top of the image
-        const labelOffsetTop: number    = 260;    
+        const photoX: number            = (imageWidth/2 + 100);
+        const photoY: number            = 200; // Upper left
+        const photoW: number            = (imageWidth *.4);
 
-        const boxHeight: number         = 130;  // fillRect draws below the start point
-        const rowOffsetY: number        = 290;  // 280 is upper left, fillRect draws down, fillText will need add boxHeight to get lower left 
-        const rowSpacing: number        = 155;
+        const labelX: number           = 100;
+        const valueX: number           = 700;
 
-        const cityOffsetX: number       = 50;
-        const wonOffsetX: number        = 950;
-        const lostOffsetX: number       = 1160;
-        const gamesBackOffsetX: number  = 1360;
-        const gamesHalfOffsetX: number  = 1500; // This touches and extends the games back box
-        const lastTenOffsetX: number    = 1650
-
-        const textOffsetInBoxY: number  = (boxHeight - 32); // text orgin is lower right and we want it up a bit more to center vertically in box
-        
-        const cityBoxWidth: number      = 850;
-        const wonBoxWidth: number       = 170;
-        const lostBoxWidth: number      = 170;
-        const gamesBackBoxWidth: number = 140;  // if a team is 2.5 games back, gamesBack will be "2"
-        const gamesHalfBoxWidth: number = 120;  //                              gamesHalf will be a '1/2' char
-        const lastTenBoxWidth: number   = 210;
-
-        const cityTextOffsetX: number   = 20;   // Set the left spacing to 20 pixels, other fields are centered.
+        const upstairsTempY: number    = 200 + mediumFontPointSize;
+        const insideTempY: number      = 280 + mediumFontPointSize;
+        const outsideTempY: number     = 360 + mediumFontPointSize;
+        const dewPointY: number        = 440 + mediumFontPointSize;
+        const windSpeedY: number       = 520 + mediumFontPointSize;
+        const windDirectionY: number   = 600 + mediumFontPointSize;
+        const hourlyRainY: number      = 680 + mediumFontPointSize;
+        const dailyRainY: number       = 760 + mediumFontPointSize;
+        const uvIndexY: number         = 840 + mediumFontPointSize;
 
         const img = pure.make(imageWidth, imageHeight);
         const ctx = img.getContext('2d');
@@ -90,111 +80,60 @@ export class BaseballStandingsImage {
         ctx.fillRect(0, 0, imageWidth, imageHeight);
 
         // Draw the title
-        ctx.fillStyle = titleColor;
+        ctx.fillStyle = textColor;
         ctx.font = largeFont;
         const textWidth: number = ctx.measureText(title).width;
-        ctx.fillText(title, (imageWidth - textWidth) / 2, titleOffset);
+        ctx.fillText(title, (imageWidth - textWidth) / 2, titleY);
 
-        const photo = await pure.decodeJPEGFromStream(fs.createReadStream("../redcedars.jpg"));
-        ctx.drawImage(photo, 0, 0, photo.width, photo.height, 100, 100, photo.width, photo.height); // image, source dim, dest dim
-        // PImage.decodeJPEGFromStream(fs.createReadStream("test/images/bird.jpg")).then((img) => {
-        //     console.log("size is",img.width,img.height);
-        //     var img2 = PImage.make(50,50);
-        //     var c = img2.getContext('2d');
-        //     c.drawImage(img,
-        //         0, 0, img.width, img.height, // source dimensions
-        //         0, 0, 50, 50                 // destination dimensions
-        //     );
-        //     var pth = path.join(BUILD_DIR,"resized_bird.jpg");
-        //     PImage.encodeJPEGToStream(img2,fs.createWriteStream(pth), 50).then(() => {
-        //         console.log("done writing");
-        //     });
-        // });
+        // Insert the house photo
+        const photo = await pure.decodeJPEGFromStream(fs.createReadStream("./redcedars.jpg"));
 
-
-
-
-
-
-
-
-
-        ctx.strokeStyle = borderColor;
-        ctx.lineWidth = heavyStroke;
-
-        // strokeRect is not working with lineWidth righ now.
-        // ctx.strokeRect(borderWidth,borderWidth,imageWidth - 2 * borderWidth,imageHeight - 2 * borderWidth);
+        if (photo !== null && photo !== undefined) {
+            // photo width is defined above as 40% of the screen width
+            // scale the height to maintain the aspect ration
+            const height = (photoW * photo.height) / photo.width;
+            ctx.drawImage(photo,
+                0, 0, photo.width, photo.height,      // source
+                photoX, photoY, photoW, height);            // destination
+        }
         
-        // Some of this is a little finicky since little gaps appear with drawing individual lines
-        ctx.beginPath();
-        ctx.moveTo(borderWidth-5,  borderWidth-5);
-        ctx.lineTo(borderWidth-5,  imageHeight);   // Down the left side
-        ctx.lineTo(imageWidth ,    imageHeight);   // Across the bottom
-        ctx.lineTo(imageWidth ,    borderWidth);   // Up to the top right
-        ctx.lineTo(0,              0);             // Back across the top to the left
-        ctx.stroke();
-        
-        // Draw the column labels - gamesBack and gamesHalf are drawn to look like a single box with one label
+        // Draw the labels
+        ctx.fillStyle = textColor;
         ctx.font = mediumFont;
-        ctx.fillText("W",    wonOffsetX +       (wonBoxWidth                             - ctx.measureText("W").width)   / 2, labelOffsetTop);
-        ctx.fillText("L",    lostOffsetX +      (lostBoxWidth                            - ctx.measureText("L").width)   / 2, labelOffsetTop);
-        ctx.fillText("GB",   gamesBackOffsetX + ((gamesBackBoxWidth + gamesHalfBoxWidth) - ctx.measureText("GB").width)  / 2, labelOffsetTop);
-        ctx.fillText("L10",  lastTenOffsetX +   (lastTenBoxWidth                         - ctx.measureText("L10").width) / 2, labelOffsetTop);
+        ctx.fillText("Upstairs Temp",      labelX,       upstairsTempY);
+        ctx.fillText("Downstairs Temp",    labelX,       insideTempY);
+        ctx.fillText("Outside Temp",       labelX,       outsideTempY);
+        ctx.fillText("Dew Point",          labelX,       dewPointY);
+        ctx.fillText("Wind Speed",         labelX,       windSpeedY);
+        ctx.fillText("Wind Direction",     labelX,       windDirectionY);
+        ctx.fillText("Hourly Rain (rate)", labelX,       hourlyRainY);
+        ctx.fillText("Daily Rain",         labelX,       dailyRainY);
+        ctx.fillText("UV Index",           labelX,       uvIndexY);
 
-        // Draw the boxes for the city, wins, losses and games back
-        ctx.fillStyle = boxBackgroundColor;
-        for (let row = 0; row < 5; row++) {
-            ctx.fillRect(cityOffsetX,      rowOffsetY + row * rowSpacing,  cityBoxWidth,      boxHeight);
-            ctx.fillRect(wonOffsetX,       rowOffsetY + row * rowSpacing,  wonBoxWidth,       boxHeight);
-            ctx.fillRect(lostOffsetX,      rowOffsetY + row * rowSpacing,  lostBoxWidth,      boxHeight);
-            ctx.fillRect(gamesBackOffsetX, rowOffsetY + row * rowSpacing,  gamesBackBoxWidth, boxHeight);
-            ctx.fillRect(gamesHalfOffsetX, rowOffsetY + row * rowSpacing,  gamesHalfBoxWidth, boxHeight);
-            ctx.fillRect(lastTenOffsetX,   rowOffsetY + row * rowSpacing,  lastTenBoxWidth,   boxHeight);
-        }
+        // Fill in the data values
+        ctx.fillText(`${stationData.temp2f}`,                 valueX,       upstairsTempY);
+        ctx.fillText(`${stationData.tempinf}`,                valueX,       insideTempY);
+        ctx.fillText(`${stationData.tempf}`,                  valueX,       outsideTempY);
+        ctx.fillText(`${stationData.windspdmph_avg10m} mph`,  valueX,       windSpeedY);
+        ctx.fillText(`${stationData.windDirPoint}  (${stationData.winddir_avg10m} \u00B0)`,       valueX,       windDirectionY);
+        ctx.fillText(`${stationData.hourlyrainin}"/hr`,       valueX,       hourlyRainY);
+        ctx.fillText(`${stationData.dailyrainin}"`,           valueX,       dailyRainY);
 
-        // The data uses a single letter for the division so assign it here.
-        let dv: string = "E";
-        if (div === "CENTRAL") {
-            dv = "C";
-        } else if (div === "WEST") {
-            dv = "W"
-        }
+        ctx.fillStyle = this.getDPColor(stationData.dewPoint);
+        ctx.fillText(`${stationData.dewPoint} ${stationData.dpLabel}`,               valueX,       dewPointY);
 
-        // Now fill in the text in each row for the conf and div specified
-        ctx.fillStyle = titleColor;
-        ctx.font = mediumFont;
-        for (let i = 0; i < 5; i++) {
-            const city      = `${standingsArray[conf][dv][i].city}`;
-            const won       = `${standingsArray[conf][dv][i].won}`;
-            const lost      = `${standingsArray[conf][dv][i].lost}`;
-            let   gamesBack = `${standingsArray[conf][dv][i].games_back}`;
-            let   gamesHalf = `${standingsArray[conf][dv][i].games_half}`;
-            const lastTen   = `${standingsArray[conf][dv][i].last_ten}`;
+        ctx.fillStyle = this.getUVColor(stationData.uv);
+        ctx.fillText(`${stationData.uv} (${stationData.uvLabel})`,           valueX,       uvIndexY);
 
-            if (gamesBack === "0") gamesBack = "-";
-            gamesHalf =  (gamesHalf === "1") ? "\u00BD" : "";  // we will show a '1/2' char or nothing
+        // Add the note at the bottom with the update time
+        ctx.font = smallFont;
+        ctx.fillStyle = textColor;
+        ctx.fillText(`Updated: ${stationData.updateTime}`, imageWidth - 350, imageHeight - 20)
 
-            const rowY       = rowOffsetY + (i * rowSpacing) + textOffsetInBoxY;        
-
-            const cityX      = cityOffsetX +      cityTextOffsetX;
-            const wonX       = wonOffsetX +       (wonBoxWidth -       ctx.measureText(won).width) / 2;
-            const lostX      = lostOffsetX +      (lostBoxWidth -      ctx.measureText(lost).width) / 2;
-            const gamesBackX = gamesBackOffsetX + (gamesBackBoxWidth - ctx.measureText(gamesBack).width) / 2;
-            const gamesHalfX = gamesHalfOffsetX + (gamesHalfBoxWidth - ctx.measureText(gamesHalf).width) / 2;
-            const lastTenX   = lastTenOffsetX +   (lastTenBoxWidth -   ctx.measureText(lastTen).width) / 2;
-            
-            ctx.fillText(city,      cityX,       rowY);
-            ctx.fillText(won,       wonX,        rowY);
-            ctx.fillText(lost,      lostX,       rowY);
-            ctx.fillText(gamesBack, gamesBackX,  rowY);
-            ctx.fillText(gamesHalf, gamesHalfX,  rowY);
-            ctx.fillText(lastTen,   lastTenX,    rowY);
-        }
-
-        const expires = new Date();
+        const expires: Date = new Date();
         expires.setHours(expires.getHours() + 12);
 
-        const jpegImg = await jpeg.encode(img, 50);
+        const jpegImg = jpeg.encode(img, 50);
 
         const jpegStream = new stream.Readable({
             read() {
@@ -208,5 +147,22 @@ export class BaseballStandingsImage {
             stream:  jpegStream,
             expires: expires.toUTCString()
         }
+    }
+
+    private getDPColor(dewPoint: number) {        
+        if (dewPoint < 55) return 'rgb(21,  102,  232)';  // Blue
+        if (dewPoint < 60) return 'rgb(38,  232,  21)';   // Green
+        if (dewPoint < 65) return 'rgb(232, 232,  21)';   // Yellow
+        if (dewPoint < 70) return 'rgb(232, 130,  21)';   // Orange
+        if (dewPoint < 75) return 'rgb(232, 35,   21)';   // Red
+                           return 'rgb(168, 23,   13)';   // Dark Red
+    }
+
+    private getUVColor(uv: number) {        
+        if (uv <= 2)  return 'rgb(38,  232,  21)';   // Green
+        if (uv <= 5)  return 'rgb(232, 232,  21)';   // Yellow
+        if (uv <= 7)  return 'rgb(232, 130,  21)';   // Orange
+        if (uv <= 10) return 'rgb(232, 35,   21)';   // Red
+                      return 'rgb(168, 23,   13)';   // Dark Red
     }
 }

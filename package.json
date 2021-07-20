@@ -17,6 +17,7 @@
   "dependencies": {
     "axios": "^0.21.0",
     "dateformat": "^4.5.1",
+    "dotenv": "^10.0.0",
     "jpeg-js": "^0.4.2",
     "np": "^7.5.0",
     "pureimage": "^0.3.2",

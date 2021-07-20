@@ -1,3 +1,7 @@
+build
+.env
+image.jpg 
+
 # Logs
 logs
 *.log

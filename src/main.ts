@@ -1,14 +1,18 @@
 import fs from 'fs';
-import { BaseballStandingsImage } from './RedCedarsImage';
+import { RedCedarsImage } from './RedCedarsImage';
 import { Logger } from "./Logger";
+
+require('dotenv').config();
 
 // Create a new express application instance
 async function run() {
-    const logger: Logger = new Logger("standings-builder"); 
+    const logger: Logger = new Logger("redcedars-builder"); 
    
-    const baseballStandingsImage = new BaseballStandingsImage(logger);
+    const redCedarsImage = new RedCedarsImage(logger);
+
+    const url = process.env.RED_CEDARS_URL;
     
-    const result = await baseballStandingsImage.getImageStream("AL", "EAST");
+    const result = await redCedarsImage.getImageStream(url);
     
     // We now get result.jpegImg
     logger.info(`Main: Writing: image.jpg`);
