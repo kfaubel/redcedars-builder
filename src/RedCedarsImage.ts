@@ -115,8 +115,8 @@ export class RedCedarsImage {
         ctx.fillText(`${stationData.tempinf}`,                valueX,       insideTempY);
         ctx.fillText(`${stationData.tempf}`,                  valueX,       outsideTempY);
         ctx.fillText(`${stationData.windspdmph_avg10m} mph`,  valueX,       windSpeedY);
-        ctx.fillText(`${stationData.windDirPoint}  (${stationData.winddir_avg10m} \u00B0)`,       valueX,       windDirectionY);
-        ctx.fillText(`${stationData.hourlyrainin}"/hr`,       valueX,       hourlyRainY);
+        ctx.fillText(`${stationData.windDirPoint}  (${stationData.winddir_avg10m}\u00B0)`,       valueX,       windDirectionY);
+        ctx.fillText(`${stationData.hourlyrainin} in/hr`,       valueX,       hourlyRainY);
         ctx.fillText(`${stationData.dailyrainin}"`,           valueX,       dailyRainY);
 
         ctx.fillStyle = this.getDPColor(stationData.dewPoint);

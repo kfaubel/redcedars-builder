@@ -1,6 +1,6 @@
 {
   "name": "redcedars-builder",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Create jpegs with data from Red Cedars",
   "main": "index.js",
   "scripts": {
