@@ -1,8 +1,5 @@
 import axios from 'axios';
-
-interface RawJson {
-    stationData: Array<StationData>;
-}
+import { Logger } from './Logger';
 
 export interface StationData {
     dateutc: number;
@@ -24,24 +21,25 @@ export interface StationData {
 }
 
 export class RedCedarsData {
-    private logger;
+    private logger: Logger;
 
-    constructor(logger: any) {
+    constructor(logger: Logger) {
         this.logger = logger;
     }    
 
-    public async getStationData(url: string) { 
-        let rawJson: RawJson = {stationData: []};
+    public async getStationData(url: string): Promise<StationData | null> { 
+        // Return from GET call is an array of 288 StationData element.  We only need the last one.
+        let rawJson: Array<StationData> = [];
 
-        await axios.get(url)
-            .then((response: any) => {
-                rawJson = response.data;
-            })
-            .catch((error: any) => {
-                this.logger.error("RedCedarsData: Error getting data: " + error);
-                return {};
-            });
-
+        try {
+            const response = await axios.get(url);
+            rawJson = response.data;
+        } catch(e) {
+            this.logger.error(`RedCedarsData: Error getting data: ${e}`);
+            return null;
+        }
+        
+        // We only need the newest element
         const currentStationData: StationData = rawJson[0];
         
         currentStationData.tempf      = Math.round(currentStationData.tempf);
@@ -52,58 +50,53 @@ export class RedCedarsData {
         currentStationData.dewPoint2  = Math.round(currentStationData.dewPoint2);
         
         const windDir: number = currentStationData.winddir_avg10m;
-        let windDirStr: string;
+        
 
         // Calculate one of the 16 compass points based on the direction in degrees
         // 360/16 = 22
-        if (windDir < 11) {windDirStr = "N";} 
-        else if (windDir < 34) {windDirStr = "NNE";}
-        else if (windDir < 56) {windDirStr = "NE";}
-        else if (windDir < 79) {windDirStr = "ENE";}
-        else if (windDir < 101) {windDirStr = "E";}
-        else if (windDir < 124) {windDirStr = "ESE";}
-        else if (windDir < 146) {windDirStr = "SE";}
-        else if (windDir < 169) {windDirStr = "SSE";}
-        else if (windDir < 191) {windDirStr = "S";}
-        else if (windDir < 214) {windDirStr = "SSW";}
-        else if (windDir < 236) {windDirStr = "SW";}
-        else if (windDir < 259) {windDirStr = "WSW";}
-        else if (windDir < 281) {windDirStr = "W";}
-        else if (windDir < 304) {windDirStr = "WNW";}
-        else if (windDir < 326) {windDirStr = "NW";}
-        else if (windDir < 349) {windDirStr = "NNW";}
-        else {windDirStr = "N";}
-        currentStationData.windDirPoint = windDirStr;
-
+        if (windDir < 11)       {currentStationData.windDirPoint = "N";} 
+        else if (windDir < 34)  {currentStationData.windDirPoint = "NNE";}
+        else if (windDir < 56)  {currentStationData.windDirPoint = "NE";}
+        else if (windDir < 79)  {currentStationData.windDirPoint = "ENE";}
+        else if (windDir < 101) {currentStationData.windDirPoint = "E";}
+        else if (windDir < 124) {currentStationData.windDirPoint = "ESE";}
+        else if (windDir < 146) {currentStationData.windDirPoint = "SE";}
+        else if (windDir < 169) {currentStationData.windDirPoint = "SSE";}
+        else if (windDir < 191) {currentStationData.windDirPoint = "S";}
+        else if (windDir < 214) {currentStationData.windDirPoint = "SSW";}
+        else if (windDir < 236) {currentStationData.windDirPoint = "SW";}
+        else if (windDir < 259) {currentStationData.windDirPoint = "WSW";}
+        else if (windDir < 281) {currentStationData.windDirPoint = "W";}
+        else if (windDir < 304) {currentStationData.windDirPoint = "WNW";}
+        else if (windDir < 326) {currentStationData.windDirPoint = "NW";}
+        else if (windDir < 349) {currentStationData.windDirPoint = "NNW";}
+        else                    {currentStationData.windDirPoint = "N";}
+        
         // Determine the dew point label
-        let dpLabel: string = "";
         if (currentStationData.dewPoint < 55) {
-            dpLabel  = "Dry";  
+            currentStationData.dpLabel  = "Dry";  
         } else if (currentStationData.dewPoint < 60) { 
-            dpLabel  = "Comfortable"; 
+            currentStationData.dpLabel  = "Comfortable"; 
         } else if (currentStationData.dewPoint < 65) {
-            dpLabel  = "Sticky";
+            currentStationData.dpLabel  = "Sticky";
         } else if (currentStationData.dewPoint < 70) {
-            dpLabel  = "Muggy";
+            currentStationData.dpLabel  = "Muggy";
         } else {
-            dpLabel = "Oppresive";
+            currentStationData.dpLabel = "Oppresive";
         }
-        currentStationData.dpLabel = dpLabel;
 
         // Determine the UV label
-        let uvLabel: string = "";
         if (currentStationData.uv <= 2) {
-            uvLabel  = "low";  
+            currentStationData.uvLabel  = "low";  
         } else if (currentStationData.uv <=5 ) { 
-            uvLabel  = "Medium"; 
+            currentStationData.uvLabel  = "Medium"; 
         } else if (currentStationData.dewPoint <= 7) {
-            uvLabel  = "High";
-        } else if (currentStationData.dewPoint <= 7) {
-            uvLabel  = "Very High";
+            currentStationData.uvLabel  = "High";
+        } else if (currentStationData.dewPoint <= 10) {
+            currentStationData.uvLabel  = "Very High";
         } else {
-            uvLabel  = "Danger";
+            currentStationData.uvLabel  = "Danger";
         } 
-        currentStationData.uvLabel = uvLabel;
 
         // Format the update time and add it
         const updateTime = new Date(currentStationData.dateutc);

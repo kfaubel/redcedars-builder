@@ -1,66 +1,64 @@
-import stream from 'stream';
 import jpeg from 'jpeg-js';
 import fs from 'fs';
-
-const pure = require('pureimage');
-
+import path from 'path';
+import * as pure from 'pureimage';
 import { RedCedarsData, StationData } from './RedCedarsData';
+import { Logger } from './Logger';
 
-const fontDir = __dirname + "/../fonts";
+export interface ImageResult {
+    expires: string;
+    imageType: string;
+    imageData: jpeg.BufferRet | null;
+}
 
 export class RedCedarsImage {
-    private redCedarsJson: any;
+    private logger: Logger;
+    private dirname: string;
 
-    private logger;
-
-    constructor(logger: any) {
+    constructor(logger: Logger, dirname: string) {
         this.logger = logger;
+        this.dirname = dirname;
     }
 
-    public setLogger(logger: any) {
-        this.logger = logger;
-    }
-
-    public async getImageStream(url) {
-        const title: string = `Conditions at Red Cedars`;
+    public async getImageStream(url: string) : Promise<ImageResult> {
+        const title = `Conditions at Red Cedars`;
         
         const redCedarsData: RedCedarsData = new RedCedarsData(this.logger);
 
-        const stationData: StationData = await  redCedarsData.getStationData(url);
-        const redCedarsJson = {};
+        const stationData: StationData | null = await  redCedarsData.getStationData(url);
 
-        if (redCedarsJson === undefined) {
+        if (stationData === null) {
             this.logger.warn("RedCedarsImage: Failed to get data, no image available.\n")
-            return null;
+            return {expires: "", imageType: "", imageData: null};
         }
 
-        const imageHeight: number = 1080; // 800;
-        const imageWidth: number  = 1920; // 1280;
+        const imageHeight = 1080; 
+        const imageWidth  = 1920; 
 
-        const backgroundColor: string     = 'rgb(0,   0,    40)';   // Dark blue
-        const textColor: string           = 'rgb(40,  200,  80)'; 
+        const backgroundColor     = 'rgb(0,   0,    40)';   // Dark blue
+        const textColor           = 'rgb(40,  200,  80)'; 
         
-        const mediumFontPointSize: number = 60;
-        const largeFont: string  = "90px 'OpenSans-Bold'";     // Title
-        const mediumFont: string = "50px 'OpenSans-Regular";   // Other text
-        const smallFont: string  = "30px 'OpenSans-Regular'";  // Note at the bottom
+        const mediumFontPointSize = 60;
+        const largeFont  = "90px 'OpenSans-Bold'";     // Title
+        const mediumFont = "50px 'OpenSans-Regular";   // Other text
+        const smallFont  = "30px 'OpenSans-Regular'";  // Note at the bottom
 
-        const fntBold     = pure.registerFont(fontDir + '/OpenSans-Bold.ttf','OpenSans-Bold');
-        const fntRegular  = pure.registerFont(fontDir + '/OpenSans-Regular.ttf','OpenSans-Regular');
-        const fntRegular2 = pure.registerFont(fontDir + '/alata-regular.ttf','alata-regular');
-
+        const fntBold = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Bold.ttf"),'OpenSans-Bold');
+        const fntRegular = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Regular.ttf"),'OpenSans-Regular');
+        const fntRegular2 = pure.registerFont(path.join(this.dirname, "..", "fonts", "alata-regular.ttf"),'alata-regular');
+        
         fntBold.loadSync();
         fntRegular.loadSync();
         fntRegular2.loadSync();
 
-        const titleY: number            = 120; // down from the top of the image
+        const titleY                   = 120; // down from the top of the image
 
-        const photoX: number            = (imageWidth/2 + 100);
-        const photoY: number            = 200; // Upper left
-        const photoW: number            = (imageWidth *.4);
+        const photoX: number           = (imageWidth/2 + 100);
+        const photoY                   = 200; // Upper left
+        const photoW: number           = (imageWidth *.4);
 
-        const labelX: number           = 100;
-        const valueX: number           = 700;
+        const labelX                   = 100;
+        const valueX                   = 650;
 
         const upstairsTempY: number    = 200 + mediumFontPointSize;
         const insideTempY: number      = 280 + mediumFontPointSize;
@@ -134,22 +132,15 @@ export class RedCedarsImage {
         expires.setHours(expires.getHours() + 12);
 
         const jpegImg = jpeg.encode(img, 50);
-
-        const jpegStream = new stream.Readable({
-            read() {
-                this.push(jpegImg.data);
-                this.push(null);
-            }
-        })
         
         return {
-            jpegImg: jpegImg,
-            stream:  jpegStream,
+            imageData: jpegImg,
+            imageType: "jpg",
             expires: expires.toUTCString()
         }
     }
 
-    private getDPColor(dewPoint: number) {        
+    private getDPColor(dewPoint: number) : string {        
         if (dewPoint < 55) return 'rgb(21,  102,  232)';  // Blue
         if (dewPoint < 60) return 'rgb(38,  232,  21)';   // Green
         if (dewPoint < 65) return 'rgb(232, 232,  21)';   // Yellow
@@ -158,7 +149,7 @@ export class RedCedarsImage {
                            return 'rgb(168, 23,   13)';   // Dark Red
     }
 
-    private getUVColor(uv: number) {        
+    private getUVColor(uv: number) : string {        
         if (uv <= 2)  return 'rgb(38,  232,  21)';   // Green
         if (uv <= 5)  return 'rgb(232, 232,  21)';   // Yellow
         if (uv <= 7)  return 'rgb(232, 130,  21)';   // Orange
