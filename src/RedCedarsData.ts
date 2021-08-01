@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { Logger } from './Logger';
+import axios from "axios";
+import { Logger } from "./Logger";
 
 export interface StationData {
     dateutc: number;

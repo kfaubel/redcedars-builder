@@ -1,9 +1,9 @@
-import jpeg from 'jpeg-js';
-import fs from 'fs';
-import path from 'path';
-import * as pure from 'pureimage';
-import { RedCedarsData, StationData } from './RedCedarsData';
-import { Logger } from './Logger';
+import jpeg from "jpeg-js";
+import fs from "fs";
+import path from "path";
+import * as pure from "pureimage";
+import { RedCedarsData, StationData } from "./RedCedarsData";
+import { Logger } from "./Logger";
 
 export interface ImageResult {
     expires: string;
@@ -21,31 +21,31 @@ export class RedCedarsImage {
     }
 
     public async getImageStream(url: string) : Promise<ImageResult> {
-        const title = `Conditions at Red Cedars`;
+        const title = "Conditions at Red Cedars";
         
         const redCedarsData: RedCedarsData = new RedCedarsData(this.logger);
 
         const stationData: StationData | null = await  redCedarsData.getStationData(url);
 
         if (stationData === null) {
-            this.logger.warn("RedCedarsImage: Failed to get data, no image available.\n")
+            this.logger.warn("RedCedarsImage: Failed to get data, no image available.\n");
             return {expires: "", imageType: "", imageData: null};
         }
 
         const imageHeight = 1080; 
         const imageWidth  = 1920; 
 
-        const backgroundColor     = 'rgb(0,   0,    40)';   // Dark blue
-        const textColor           = 'rgb(40,  200,  80)'; 
+        const backgroundColor     = "rgb(0,   0,    40)";   // Dark blue
+        const textColor           = "rgb(40,  200,  80)"; 
         
         const mediumFontPointSize = 60;
         const largeFont  = "90px 'OpenSans-Bold'";     // Title
         const mediumFont = "50px 'OpenSans-Regular";   // Other text
         const smallFont  = "30px 'OpenSans-Regular'";  // Note at the bottom
 
-        const fntBold = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Bold.ttf"),'OpenSans-Bold');
-        const fntRegular = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Regular.ttf"),'OpenSans-Regular');
-        const fntRegular2 = pure.registerFont(path.join(this.dirname, "..", "fonts", "alata-regular.ttf"),'alata-regular');
+        const fntBold = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Bold.ttf"),"OpenSans-Bold");
+        const fntRegular = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Regular.ttf"),"OpenSans-Regular");
+        const fntRegular2 = pure.registerFont(path.join(this.dirname, "..", "fonts", "alata-regular.ttf"),"alata-regular");
         
         fntBold.loadSync();
         fntRegular.loadSync();
@@ -71,7 +71,7 @@ export class RedCedarsImage {
         const uvIndexY: number         = 840 + mediumFontPointSize;
 
         const img = pure.make(imageWidth, imageHeight);
-        const ctx = img.getContext('2d');
+        const ctx = img.getContext("2d");
 
         // Fill the bitmap
         ctx.fillStyle = backgroundColor;
@@ -126,7 +126,7 @@ export class RedCedarsImage {
         // Add the note at the bottom with the update time
         ctx.font = smallFont;
         ctx.fillStyle = textColor;
-        ctx.fillText(`Updated: ${stationData.updateTime}`, imageWidth - 350, imageHeight - 20)
+        ctx.fillText(`Updated: ${stationData.updateTime}`, imageWidth - 350, imageHeight - 20);
 
         const expires: Date = new Date();
         expires.setHours(expires.getHours() + 12);
@@ -137,23 +137,23 @@ export class RedCedarsImage {
             imageData: jpegImg,
             imageType: "jpg",
             expires: expires.toUTCString()
-        }
+        };
     }
 
     private getDPColor(dewPoint: number) : string {        
-        if (dewPoint < 55) return 'rgb(21,  102,  232)';  // Blue
-        if (dewPoint < 60) return 'rgb(38,  232,  21)';   // Green
-        if (dewPoint < 65) return 'rgb(232, 232,  21)';   // Yellow
-        if (dewPoint < 70) return 'rgb(232, 130,  21)';   // Orange
-        if (dewPoint < 75) return 'rgb(232, 35,   21)';   // Red
-                           return 'rgb(168, 23,   13)';   // Dark Red
+        if (dewPoint < 55) return "rgb(21,  102,  232)";  // Blue
+        if (dewPoint < 60) return "rgb(38,  232,  21)";   // Green
+        if (dewPoint < 65) return "rgb(232, 232,  21)";   // Yellow
+        if (dewPoint < 70) return "rgb(232, 130,  21)";   // Orange
+        if (dewPoint < 75) return "rgb(232, 35,   21)";   // Red
+        return "rgb(168, 23,   13)";   // Dark Red
     }
 
     private getUVColor(uv: number) : string {        
-        if (uv <= 2)  return 'rgb(38,  232,  21)';   // Green
-        if (uv <= 5)  return 'rgb(232, 232,  21)';   // Yellow
-        if (uv <= 7)  return 'rgb(232, 130,  21)';   // Orange
-        if (uv <= 10) return 'rgb(232, 35,   21)';   // Red
-                      return 'rgb(168, 23,   13)';   // Dark Red
+        if (uv <= 2)  return "rgb(38,  232,  21)";   // Green
+        if (uv <= 5)  return "rgb(232, 232,  21)";   // Yellow
+        if (uv <= 7)  return "rgb(232, 130,  21)";   // Orange
+        if (uv <= 10) return "rgb(232, 35,   21)";   // Red
+        return "rgb(168, 23,   13)";   // Dark Red
     }
 }
