@@ -1,5 +1,5 @@
 import fs from "fs";
-import { RedCedarsImage } from "./RedCedarsImage";
+import { ImageResult, RedCedarsImage } from "./RedCedarsImage";
 import { Logger } from "./Logger";
 import dotenv from "dotenv";
 
@@ -17,7 +17,7 @@ async function run() {
         process.exit(1);
     }
     
-    const result = await redCedarsImage.getImageStream(url);
+    const result: ImageResult | null = await redCedarsImage.getImageStream(url);
     
     // We now get result.jpegImg
     logger.info("Main: Writing: image.jpg");

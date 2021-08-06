@@ -32,7 +32,7 @@ export class RedCedarsData {
         let rawJson: Array<StationData> = [];
 
         try {
-            const response = await axios.get(url);
+            const response = await axios.get(url, {headers: {"Content-Encoding": "gzip"}});
             rawJson = response.data;
         } catch(e) {
             this.logger.error(`RedCedarsData: Error getting data: ${e}`);

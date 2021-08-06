@@ -20,7 +20,7 @@ export class RedCedarsImage {
         this.dirname = dirname;
     }
 
-    public async getImageStream(url: string) : Promise<ImageResult> {
+    public async getImageStream(url: string) : Promise<ImageResult | null> {
         const title = "Conditions at Red Cedars";
         
         const redCedarsData: RedCedarsData = new RedCedarsData(this.logger);
@@ -29,7 +29,7 @@ export class RedCedarsImage {
 
         if (stationData === null) {
             this.logger.warn("RedCedarsImage: Failed to get data, no image available.\n");
-            return {expires: "", imageType: "", imageData: null};
+            return null;
         }
 
         const imageHeight = 1080; 
@@ -105,7 +105,7 @@ export class RedCedarsImage {
         ctx.fillText("Wind Speed",         labelX,       windSpeedY);
         ctx.fillText("Wind Direction",     labelX,       windDirectionY);
         ctx.fillText("Hourly Rain (rate)", labelX,       hourlyRainY);
-        ctx.fillText("Daily Rain",         labelX,       dailyRainY);
+        ctx.fillText("Rain Today",         labelX,       dailyRainY);
         ctx.fillText("UV Index",           labelX,       uvIndexY);
 
         // Fill in the data values

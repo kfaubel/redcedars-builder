@@ -1,5 +1,3 @@
-"use strict";
-
 export class Logger {
     private module: string;
     private level = 2;
