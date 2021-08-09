@@ -57,7 +57,7 @@ export class RedCedarsImage {
         const photoW: number           = (imageWidth *.4);
 
         const labelX                   = 100;
-        const valueX                   = 650;
+        const valueX                   = 600;
 
         const upstairsTempY: number    = 200 + mediumFontPointSize;
         const insideTempY: number      = 280 + mediumFontPointSize;
@@ -113,13 +113,13 @@ export class RedCedarsImage {
         ctx.fillText(`${stationData.tempf}`,                  valueX,       outsideTempY);
         ctx.fillText(`${stationData.windspdmph_avg10m} mph`,  valueX,       windSpeedY);
         ctx.fillText(`${stationData.windDirPoint}  (${stationData.winddir_avg10m}\u00B0)`,       valueX,       windDirectionY);
-        ctx.fillText(`${stationData.hourlyrainin} in/hr`,       valueX,       hourlyRainY);
-        ctx.fillText(`${stationData.dailyrainin}"`,           valueX,       dailyRainY);
+        ctx.fillText(`${stationData.hourlyrainin.toFixed(2)} in/hr`,       valueX,       hourlyRainY);
+        ctx.fillText(`${stationData.dailyrainin.toFixed(2)} in`,           valueX,       dailyRainY);
 
-        ctx.fillStyle = this.getDPColor(stationData.dewPoint);
-        ctx.fillText(`${stationData.dewPoint} ${stationData.dpLabel}`,               valueX,       dewPointY);
+        //ctx.fillStyle = this.getDPColor(stationData.dewPoint);
+        ctx.fillText(`${stationData.dewPoint} (${stationData.dpLabel})`,               valueX,       dewPointY);
 
-        ctx.fillStyle = this.getUVColor(stationData.uv);
+        //ctx.fillStyle = this.getUVColor(stationData.uv);
         ctx.fillText(`${stationData.uv} (${stationData.uvLabel})`,           valueX,       uvIndexY);
 
         // Add the note at the bottom with the update time
