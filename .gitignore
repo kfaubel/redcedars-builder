@@ -1,6 +1,7 @@
 build
 .env
 image.jpg 
+images
 
 # Logs
 logs

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Logger } from "./Logger";
+import { LoggerInterface } from "./Logger";
 
 export interface StationData {
     dateutc: number;
@@ -21,9 +21,9 @@ export interface StationData {
 }
 
 export class RedCedarsData {
-    private logger: Logger;
+    private logger: LoggerInterface;
 
-    constructor(logger: Logger) {
+    constructor(logger: LoggerInterface) {
         this.logger = logger;
     }    
 

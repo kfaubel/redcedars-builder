@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import * as pure from "pureimage";
 import { RedCedarsData, StationData } from "./RedCedarsData";
-import { Logger } from "./Logger";
+import { LoggerInterface } from "./Logger";
 
 export interface ImageResult {
     expires: string;
@@ -12,15 +12,13 @@ export interface ImageResult {
 }
 
 export class RedCedarsImage {
-    private logger: Logger;
-    private dirname: string;
+    private logger: LoggerInterface;
 
-    constructor(logger: Logger, dirname: string) {
+    constructor(logger: LoggerInterface) {
         this.logger = logger;
-        this.dirname = dirname;
     }
 
-    public async getImageStream(url: string) : Promise<ImageResult | null> {
+    public async getImage(url: string) : Promise<ImageResult | null> {
         const title = "Conditions at Red Cedars";
         
         const redCedarsData: RedCedarsData = new RedCedarsData(this.logger);
@@ -43,9 +41,10 @@ export class RedCedarsImage {
         const mediumFont = "50px 'OpenSans-Regular";   // Other text
         const smallFont  = "30px 'OpenSans-Regular'";  // Note at the bottom
 
-        const fntBold = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Bold.ttf"),"OpenSans-Bold");
-        const fntRegular = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Regular.ttf"),"OpenSans-Regular");
-        const fntRegular2 = pure.registerFont(path.join(this.dirname, "..", "fonts", "alata-regular.ttf"),"alata-regular");
+        // When used as an npm package, fonts need to be installed in the top level of the main project
+        const fntBold     = pure.registerFont(path.join(".", "fonts", "OpenSans-Bold.ttf"),"OpenSans-Bold");
+        const fntRegular  = pure.registerFont(path.join(".", "fonts", "OpenSans-Regular.ttf"),"OpenSans-Regular");
+        const fntRegular2 = pure.registerFont(path.join(".", "fonts", "alata-regular.ttf"),"alata-regular");
         
         fntBold.loadSync();
         fntRegular.loadSync();
@@ -84,7 +83,7 @@ export class RedCedarsImage {
         ctx.fillText(title, (imageWidth - textWidth) / 2, titleY);
 
         // Insert the house photo
-        const photo = await pure.decodeJPEGFromStream(fs.createReadStream("./redcedars.jpg"));
+        const photo = await pure.decodeJPEGFromStream(fs.createReadStream("./redcedars-outside.jpg"));
 
         if (photo !== null && photo !== undefined) {
             // photo width is defined above as 40% of the screen width
