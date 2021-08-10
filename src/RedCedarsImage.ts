@@ -83,7 +83,7 @@ export class RedCedarsImage {
         ctx.fillText(title, (imageWidth - textWidth) / 2, titleY);
 
         // Insert the house photo
-        const photo = await pure.decodeJPEGFromStream(fs.createReadStream("./redcedars-outside.jpg"));
+        const photo = await pure.decodeJPEGFromStream(fs.createReadStream(path.join(__dirname, "..", "redcedars-outside.jpg")));
 
         if (photo !== null && photo !== undefined) {
             // photo width is defined above as 40% of the screen width
