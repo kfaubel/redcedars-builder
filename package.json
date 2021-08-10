@@ -3,6 +3,7 @@
   "version": "1.0.2",
   "description": "Create jpegs with data from Red Cedars",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "shx rm -rf build/*",
@@ -45,6 +46,8 @@
   "homepage": "https://github.com/kfaubel/redcedars-builder#readme",
   "files": [
     "build/**/*",
-    "fonts/**/*"
+    "fonts/**/*",
+    "index.js",
+    "index.d.ts"
   ]
 }
