@@ -2,5 +2,5 @@
 // Use app.ts for local testing and to build a stand alone solution
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const RedCedarsImage = require("./build/RedCedarsImage");
-module.exports = RedCedarsImage;
+const RedCedarsBuilder = require("./build/RedCedarsBuilder");
+module.exports = RedCedarsBuilder;
