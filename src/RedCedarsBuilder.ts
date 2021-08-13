@@ -7,10 +7,10 @@ import { RedCedarsImage } from "./RedCedarsImage";
 
 export class RedCedarsBuilder {
     private logger: LoggerInterface;
-    private cache: KacheInterface;
+    private cache: KacheInterface | null; // generally null right now, we don't cache the data from the redcedars station
     private writer: ImageWriterInterface;
 
-    constructor(logger: LoggerInterface, cache: KacheInterface, writer: ImageWriterInterface) {
+    constructor(logger: LoggerInterface, cache: KacheInterface | null, writer: ImageWriterInterface) {
         this.logger = logger;
         this.cache = cache; 
         this.writer = writer;

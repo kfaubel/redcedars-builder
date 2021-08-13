@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import dotenv from "dotenv";
 import { Logger } from "./Logger";
 import { SimpleImageWriter } from "./SimpleImageWriter";
@@ -8,9 +9,9 @@ async function run() {
     dotenv.config();  // Load var from .env into the environment
 
     const logger: Logger = new Logger("redcedars-builder", "verbose");
-    const cache: Kache = new Kache(logger, "redcedars-cache.json"); 
+    //const cache: Kache = new Kache(logger, "redcedars-cache.json"); 
     const simpleImageWriter: SimpleImageWriter = new SimpleImageWriter(logger, "images");
-    const redcedarsBuilder: RedCedarsBuilder = new RedCedarsBuilder(logger, cache, simpleImageWriter);
+    const redcedarsBuilder: RedCedarsBuilder = new RedCedarsBuilder(logger, null, simpleImageWriter);
 
     const url: string | undefined = process.env.RED_CEDARS_URL;
 
