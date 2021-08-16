@@ -59,15 +59,16 @@ export class RedCedarsImage {
         const labelX                   = 100;
         const valueX                   = 600;
 
-        const upstairsTempY: number    = 200 + mediumFontPointSize;
-        const insideTempY: number      = 280 + mediumFontPointSize;
-        const outsideTempY: number     = 360 + mediumFontPointSize;
-        const dewPointY: number        = 440 + mediumFontPointSize;
-        const windSpeedY: number       = 520 + mediumFontPointSize;
-        const windDirectionY: number   = 600 + mediumFontPointSize;
-        const hourlyRainY: number      = 680 + mediumFontPointSize;
-        const dailyRainY: number       = 760 + mediumFontPointSize;
-        const uvIndexY: number         = 840 + mediumFontPointSize;
+        const outsideTempY: number     = 200 + mediumFontPointSize;
+        const dewPointY: number        = 280 + mediumFontPointSize;
+        const upstairsTempY: number    = 360 + mediumFontPointSize;
+        const insideTempY: number      = 440 + mediumFontPointSize;
+        const cellarTempY: number      = 520 + mediumFontPointSize;
+        const windSpeedY: number       = 600 + mediumFontPointSize;
+        const windDirectionY: number   = 680 + mediumFontPointSize;
+        const hourlyRainY: number      = 760 + mediumFontPointSize;
+        const dailyRainY: number       = 840 + mediumFontPointSize;
+        const uvIndexY: number         = 920 + mediumFontPointSize;
 
         const img = pure.make(imageWidth, imageHeight);
         const ctx = img.getContext("2d");
@@ -97,24 +98,26 @@ export class RedCedarsImage {
         // Draw the labels
         ctx.fillStyle = textColor;
         ctx.font = mediumFont;
-        ctx.fillText("Upstairs Temp",      labelX,       upstairsTempY);
-        ctx.fillText("Downstairs Temp",    labelX,       insideTempY);
         ctx.fillText("Outside Temp",       labelX,       outsideTempY);
         ctx.fillText("Dew Point",          labelX,       dewPointY);
+        ctx.fillText("Upstairs Temp",      labelX,       upstairsTempY);
+        ctx.fillText("First Floor Temp",   labelX,       insideTempY);
+        ctx.fillText("Cellar Temp",        labelX,       cellarTempY);
         ctx.fillText("Wind Speed",         labelX,       windSpeedY);
         ctx.fillText("Wind Direction",     labelX,       windDirectionY);
         ctx.fillText("Hourly Rain (rate)", labelX,       hourlyRainY);
         ctx.fillText("Rain Today",         labelX,       dailyRainY);
         ctx.fillText("UV Index",           labelX,       uvIndexY);
 
-        // Fill in the data values
-        ctx.fillText(`${stationData.temp2f}`,                 valueX,       upstairsTempY);
-        ctx.fillText(`${stationData.tempinf}`,                valueX,       insideTempY);
-        ctx.fillText(`${stationData.tempf}`,                  valueX,       outsideTempY);
-        ctx.fillText(`${stationData.windspdmph_avg10m} mph`,  valueX,       windSpeedY);
-        ctx.fillText(`${stationData.windDirPoint}  (${stationData.winddir_avg10m}\u00B0)`,       valueX,       windDirectionY);
-        ctx.fillText(`${stationData.hourlyrainin.toFixed(2)} in/hr`,       valueX,       hourlyRainY);
-        ctx.fillText(`${stationData.dailyrainin.toFixed(2)} in`,           valueX,       dailyRainY);
+        // Fill in the data values, some values may be undefined if the optionals sensors do not respond
+        ctx.fillText(`${stationData.tempf === undefined ? "-" : stationData.tempf}`,        valueX,       outsideTempY);
+        ctx.fillText(`${stationData.temp2f === undefined ? "-" : stationData.temp2f}`,      valueX,       upstairsTempY);
+        ctx.fillText(`${stationData.tempinf === undefined ? "-" : stationData.tempinf}`,    valueX,       insideTempY);
+        ctx.fillText(`${stationData.temp3f === undefined ? "-" : stationData.temp3f}`,      valueX,       cellarTempY);
+        ctx.fillText(`${stationData.windspdmph_avg10m} mph (${stationData.windgustmph} mph)`,                                valueX,       windSpeedY);
+        ctx.fillText(`${stationData.windDirPoint}  (${stationData.winddir_avg10m}\u00B0)`,  valueX,       windDirectionY);
+        ctx.fillText(`${stationData.hourlyrainin.toFixed(2)} in/hr`,                        valueX,       hourlyRainY);
+        ctx.fillText(`${stationData.dailyrainin.toFixed(2)} in`,                            valueX,       dailyRainY);
 
         //ctx.fillStyle = this.getDPColor(stationData.dewPoint);
         ctx.fillText(`${stationData.dewPoint} (${stationData.dpLabel})`,               valueX,       dewPointY);

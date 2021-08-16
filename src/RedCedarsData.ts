@@ -4,16 +4,19 @@ import { LoggerInterface } from "./Logger";
 export interface StationData {
     dateutc: number;
     updateTime: string;            // localtime station last reported
-    tempinf: number;
-    dewPointin: number;
-    temp2f: number;
-    dewPoint2: number;
+    tempinf?: number;
+    dewPointin?: number;
+    temp2f?: number;
+    dewPoint2?: number;
+    temp3f?: number;
+    dewPoint3?: number;
     tempf: number;
     dewPoint: number;
     dpLabel: string;              // Pleasant, ...
     hourlyrainin: number;
     dailyrainin: number;
     windspdmph_avg10m: number;
+    windgustmph: number,
     winddir_avg10m: number;
     windDirPoint: string;         // N, NNE, ...
     uv: number;
@@ -42,12 +45,14 @@ export class RedCedarsData {
         // We only need the newest element
         const currentStationData: StationData = rawJson[0];
         
-        currentStationData.tempf      = Math.round(currentStationData.tempf);
-        currentStationData.tempinf    = Math.round(currentStationData.tempinf);
-        currentStationData.temp2f     = Math.round(currentStationData.temp2f);
-        currentStationData.dewPoint   = Math.round(currentStationData.dewPoint);
-        currentStationData.dewPointin = Math.round(currentStationData.dewPointin);
-        currentStationData.dewPoint2  = Math.round(currentStationData.dewPoint2);
+        if (currentStationData.tempf !== undefined)      currentStationData.tempf      = Math.round(currentStationData.tempf);
+        if (currentStationData.tempinf !== undefined)    currentStationData.tempinf    = Math.round(currentStationData.tempinf);
+        if (currentStationData.temp2f !== undefined)     currentStationData.temp2f     = Math.round(currentStationData.temp2f);
+        if (currentStationData.temp3f !== undefined)     currentStationData.temp3f     = Math.round(currentStationData.temp3f);
+        if (currentStationData.dewPoint !== undefined)   currentStationData.dewPoint   = Math.round(currentStationData.dewPoint);
+        if (currentStationData.dewPointin !== undefined) currentStationData.dewPointin = Math.round(currentStationData.dewPointin);
+        if (currentStationData.dewPoint2 !== undefined)  currentStationData.dewPoint2  = Math.round(currentStationData.dewPoint2);
+        if (currentStationData.dewPoint3 !== undefined)  currentStationData.dewPoint3  = Math.round(currentStationData.dewPoint3);
         
         const windDir: number = currentStationData.winddir_avg10m;
         
