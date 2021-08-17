@@ -79,28 +79,28 @@ export class RedCedarsData {
         
         // Determine the dew point label
         if (currentStationData.dewPoint < 55) {
-            currentStationData.dpLabel  = "Dry";  
+            currentStationData.dpLabel  = "dry";  
         } else if (currentStationData.dewPoint < 60) { 
-            currentStationData.dpLabel  = "Comfortable"; 
+            currentStationData.dpLabel  = "comfortable"; 
         } else if (currentStationData.dewPoint < 65) {
-            currentStationData.dpLabel  = "Sticky";
+            currentStationData.dpLabel  = "sticky";
         } else if (currentStationData.dewPoint < 70) {
-            currentStationData.dpLabel  = "Muggy";
+            currentStationData.dpLabel  = "muggy";
         } else {
-            currentStationData.dpLabel = "Oppresive";
+            currentStationData.dpLabel = "oppresive";
         }
 
         // Determine the UV label
         if (currentStationData.uv <= 2) {
             currentStationData.uvLabel  = "low";  
         } else if (currentStationData.uv <=5 ) { 
-            currentStationData.uvLabel  = "Medium"; 
+            currentStationData.uvLabel  = "medium"; 
         } else if (currentStationData.dewPoint <= 7) {
-            currentStationData.uvLabel  = "High";
+            currentStationData.uvLabel  = "high";
         } else if (currentStationData.dewPoint <= 10) {
-            currentStationData.uvLabel  = "Very High";
+            currentStationData.uvLabel  = "very high";
         } else {
-            currentStationData.uvLabel  = "Danger";
+            currentStationData.uvLabel  = "danger";
         } 
 
         // Format the update time and add it
