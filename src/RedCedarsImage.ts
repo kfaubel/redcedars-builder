@@ -7,7 +7,6 @@ import { RedCedarsData, StationData } from "./RedCedarsData";
 import { LoggerInterface } from "./Logger";
 
 export interface ImageResult {
-    expires: string;
     imageType: string;
     imageData: jpeg.BufferRet | null;
 }
@@ -17,6 +16,24 @@ export class RedCedarsImage {
 
     constructor(logger: LoggerInterface) {
         this.logger = logger;
+    }
+
+    // This optimized fillRect was derived from the pureimage source code: https://github.com/joshmarinacci/node-pureimage/tree/master/src
+    // To fill a 1920x1080 image on a core i5, this saves about 1.5 seconds
+    // x, y       - position of the rect
+    // w, h       - size of the rect
+    // iw         - width of the image being written into, needed to calculate index into the buffer
+    // r, g, b, a - values to draw
+    private myFillRect(image: Buffer, x: number, y: number, w: number, h: number, iw: number, r: number, g: number, b: number, a: number) {
+        for(let i = y; i < y + h; i++) {                
+            for(let j = x; j < x + w; j++) {   
+                const index = (i * iw + j) * 4;     
+                image[index + 0] = r; 
+                image[index + 1] = g; 
+                image[index + 2] = b; 
+                image[index + 3] = a; 
+            }
+        }
     }
 
     public async getImage(url: string) : Promise<ImageResult | null> {
@@ -38,6 +55,7 @@ export class RedCedarsImage {
         const titleColor               = "rgb(42,  200,  240)";  //"rgb(40,  200,  80)"; 
         const textColor                = "rgb(42,  160,  210)";  //"rgb(40,  200,  80)"; 
         const arrowColor               = "rgb(255, 0,    0)";
+        const alertColor               = "rgb(200, 0,    0)";
         
         // Approximation of the height of a capital letter
         const largeFontCharHeight       = 60;
@@ -90,7 +108,8 @@ export class RedCedarsImage {
 
         // Fill the background
         ctx.fillStyle = backgroundColor;
-        ctx.fillRect(0, 0, imageWidth, imageHeight);
+        //ctx.fillRect(0, 0, imageWidth, imageHeight);
+        this.myFillRect(img.data, 0, 0, imageWidth, imageHeight, imageWidth, 0x00, 0x00, 0x20, 0);
 
         // Draw the title
         ctx.fillStyle = titleColor;
@@ -125,8 +144,6 @@ export class RedCedarsImage {
         ctx.fillText(`${stationData.hourlyrainin.toFixed(2)} in/hr`,                        valueX,       hourlyRainY);
         ctx.fillText(`${stationData.dailyrainin.toFixed(2)} in`,                            valueX,       dailyRainY);
         ctx.fillText(`${stationData.uv} (${stationData.uvLabel})`,                          valueX,       uvIndexY);
-
-
         
         ctx.fillStyle = titleColor;
         ctx.fillText("Inside Temp:",      titleX2,       insideLabelY);
@@ -147,7 +164,7 @@ export class RedCedarsImage {
         ctx.strokeStyle = textColor;
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(windCenterX, windCenterY, windRadius, 0, 2 * Math.PI);
+        ctx.arc(windCenterX, windCenterY, windRadius, 0, 2 * Math.PI); // Pure 0.3.5 warns on this
         ctx.stroke();
 
         const windSpeed = stationData.windspdmph_avg10m;
@@ -216,19 +233,22 @@ export class RedCedarsImage {
         ctx.restore();
 
         // Add the note at the bottom with the update time
+        const updateDate = new Date(stationData.updateTime);
+        const now = new Date();
+        
+        if ((now.getTime() - updateDate.getTime()) > 60 * 60 * 1000) {
+            ctx.fillStyle = alertColor;
+        } else {
+            ctx.fillStyle = textColor;
+        }
         ctx.font = smallFont;
-        ctx.fillStyle = textColor;
-        ctx.fillText(`Updated: ${stationData.updateTime}`, imageWidth - 450, imageHeight - 20);
-
-        const expires: Date = new Date();
-        expires.setHours(expires.getHours() + 12);
+        ctx.fillText(`Updated: ${stationData.updateTime}`, imageWidth - 650, imageHeight - 20);
 
         const jpegImg = jpeg.encode(img, 50);
         
         return {
             imageData: jpegImg,
-            imageType: "jpg",
-            expires: expires.toUTCString()
+            imageType: "jpg"
         };
     }
 

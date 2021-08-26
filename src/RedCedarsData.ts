@@ -105,7 +105,7 @@ export class RedCedarsData {
 
         // Format the update time and add it
         const updateTime = new Date(currentStationData.dateutc);
-        currentStationData.updateTime = updateTime.toLocaleTimeString();
+        currentStationData.updateTime = updateTime.toLocaleString();
 
         return currentStationData;
     }
