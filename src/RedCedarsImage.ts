@@ -235,14 +235,14 @@ export class RedCedarsImage {
         // Add the note at the bottom with the update time
         const updateDate = new Date(stationData.updateTime);
         const now = new Date();
-        
+        ctx.font = extraSmallFont;
         if ((now.getTime() - updateDate.getTime()) > 60 * 60 * 1000) {
             ctx.fillStyle = alertColor;
+            ctx.fillText(`Updated: ${stationData.updateTime} (old)`, imageWidth - 750, imageHeight - 20);
         } else {
             ctx.fillStyle = textColor;
+            ctx.fillText(`Updated: ${stationData.updateTime}`, imageWidth - 750, imageHeight - 20);
         }
-        ctx.font = smallFont;
-        ctx.fillText(`Updated: ${stationData.updateTime}`, imageWidth - 650, imageHeight - 20);
 
         const jpegImg = jpeg.encode(img, 50);
         
