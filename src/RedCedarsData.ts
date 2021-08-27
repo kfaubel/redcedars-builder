@@ -79,6 +79,7 @@ export class RedCedarsData {
                 uvLabel: ""
             };
 
+            this.logger.warn("RedCedarsData: No data from station");
             return currentStationData;
         }
 
