@@ -139,11 +139,13 @@ export class RedCedarsImage {
         ctx.fillText("UV Index",           labelX,       uvIndexY);
 
         // Fill in the data values, some values may be undefined if the optional sensors do not respond
-        ctx.fillText(`${stationData.tempf === undefined ? "-" : stationData.tempf}\u00B0`,  valueX,       outsideTempY);
-        ctx.fillText(`${stationData.dewPoint} (${stationData.dpLabel})`,                    valueX,       dewPointY);
-        ctx.fillText(`${stationData.hourlyrainin.toFixed(2)} in/hr`,                        valueX,       hourlyRainY);
-        ctx.fillText(`${stationData.dailyrainin.toFixed(2)} in`,                            valueX,       dailyRainY);
-        ctx.fillText(`${stationData.uv} (${stationData.uvLabel})`,                          valueX,       uvIndexY);
+        const dpLabel = (stationData.dpLabel !== "") ? `(${stationData.dpLabel})` : "";
+        const uvLabel = (stationData.uvLabel !== "") ? `(${stationData.uvLabel})` : "";
+        ctx.fillText(`${stationData.tempf}\u00B0`,                     valueX,       outsideTempY);
+        ctx.fillText(`${stationData.dewPoint} ${dpLabel}`,             valueX,       dewPointY);
+        ctx.fillText(`${stationData.hourlyrainin.toFixed(2)} in/hr`,   valueX,       hourlyRainY);
+        ctx.fillText(`${stationData.dailyrainin.toFixed(2)} in`,       valueX,       dailyRainY);
+        ctx.fillText(`${stationData.uv} ${uvLabel}`,                   valueX,       uvIndexY);
         
         ctx.fillStyle = titleColor;
         ctx.fillText("Inside Temp:",      titleX2,       insideLabelY);
@@ -219,32 +221,39 @@ export class RedCedarsImage {
             ctx.stroke();
         }
 
+        if (stationData.winddir_avg10m !== -1) {
         // Draw the wind direction arrow
-        ctx.rotate((stationData.winddir_avg10m -90) * Math.PI/180);
-        ctx.fillStyle = arrowColor;
-        ctx.beginPath();
-        ctx.moveTo(windRadius - 30, 0);
-        ctx.lineTo(windRadius + 30, 20);
-        ctx.lineTo(windRadius + 20, 0);
-        ctx.lineTo(windRadius + 30, -20);
-        ctx.lineTo(windRadius - 30, 0);
-        ctx.fill();
-
+            ctx.rotate((stationData.winddir_avg10m -90) * Math.PI/180);
+            ctx.fillStyle = arrowColor;
+            ctx.beginPath();
+            ctx.moveTo(windRadius - 30, 0);
+            ctx.lineTo(windRadius + 30, 20);
+            ctx.lineTo(windRadius + 20, 0);
+            ctx.lineTo(windRadius + 30, -20);
+            ctx.lineTo(windRadius - 30, 0);
+            ctx.fill();
+        }
         ctx.restore();
 
         // Add the note at the bottom with the update time
-        const updateDate = new Date(stationData.updateTime);
-        const now = new Date();
-        ctx.font = extraSmallFont;
-        if ((now.getTime() - updateDate.getTime()) > 60 * 60 * 1000) {
-            ctx.fillStyle = alertColor;
-            ctx.fillText(`Updated: ${stationData.updateTime} (old)`, imageWidth - 750, imageHeight - 20);
+        if (stationData.updateTime !== "") {
+            const updateDate = new Date(stationData.updateTime);
+            const now = new Date();
+            ctx.font = extraSmallFont;
+            if ((now.getTime() - updateDate.getTime()) > 60 * 60 * 1000) {
+                ctx.fillStyle = alertColor;
+                ctx.fillText(`Updated: ${stationData.updateTime} (old)`, imageWidth - 750, imageHeight - 20);
+            } else {
+                ctx.fillStyle = textColor;
+                ctx.fillText(`Updated: ${stationData.updateTime}`, imageWidth - 750, imageHeight - 20);
+            }
         } else {
-            ctx.fillStyle = textColor;
-            ctx.fillText(`Updated: ${stationData.updateTime}`, imageWidth - 750, imageHeight - 20);
+            ctx.font = extraSmallFont;
+            ctx.fillStyle = alertColor;
+            ctx.fillText("No station data", imageWidth - 750, imageHeight - 20);
         }
 
-        const jpegImg = jpeg.encode(img, 50);
+        const jpegImg = jpeg.encode(img, 80);
         
         return {
             imageData: jpegImg,

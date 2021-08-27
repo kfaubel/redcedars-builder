@@ -8,6 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Debug App",
+            "preLaunchTask": "tsc: build - tsconfig.json",
  //           "preLaunchTask": "tsc: build - tsconfig.json",
  //           "preLaunchTask": "typescript",
             "program": "${workspaceFolder}/app.js",
