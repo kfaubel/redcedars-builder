@@ -36,10 +36,11 @@ export class RedCedarsData {
 
         try {
             const response = await axios.get(url, {headers: {"Content-Encoding": "gzip"}});
+            this.logger.info(`RedCedarsData: GET response: ${response.status}`);
             rawJson = response.data;
         } catch(e) {
-            this.logger.error(`RedCedarsData: Error getting data: ${e}`);
-            rawJson = null;
+            this.logger.warn(`RedCedarsData: Error getting data: ${e}`);
+            return null;
         }
         
         let currentStationData: StationData;
@@ -57,30 +58,8 @@ export class RedCedarsData {
             if (currentStationData.dewPoint2 !== undefined)  currentStationData.dewPoint2  = Math.round(currentStationData.dewPoint2);
             if (currentStationData.dewPoint3 !== undefined)  currentStationData.dewPoint3  = Math.round(currentStationData.dewPoint3);
         } else {
-            currentStationData = {
-                tempf:   0,
-                tempinf: 0,
-                temp2f:  0,
-                temp3f:  0,
-                dewPoint: 0,
-                dewPointin: 0,
-                dewPoint2:  0,
-                dewPoint3:  0,
-                winddir_avg10m: -1,
-                hourlyrainin: 0,
-                dailyrainin: 0,
-                windspdmph_avg10m: 0,
-                windgustmph: 0,
-                uv: 0,
-                dateutc: 0,
-                updateTime: "",
-                dpLabel: "",
-                windDirPoint: "",
-                uvLabel: ""
-            };
-
             this.logger.warn("RedCedarsData: No data from station");
-            return currentStationData;
+            return null;
         }
 
         const windDir: number = currentStationData.winddir_avg10m;
