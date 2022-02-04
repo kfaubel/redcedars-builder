@@ -44,7 +44,6 @@ export class RedCedarsImage {
         const stationData: StationData | null = await  redCedarsData.getStationData(url);
 
         if (stationData === null) {
-            this.logger.warn("RedCedarsImage: Failed to get data, no image available.\n");
             return null;
         }
 

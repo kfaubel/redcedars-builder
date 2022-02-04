@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { LoggerInterface } from "./Logger";
 
 export interface StationData {
@@ -34,33 +34,42 @@ export class RedCedarsData {
         // Return from GET call is an array of 288 StationData element.  We only need the last one.
         let rawJson: Array<StationData> | null = [];
 
-        try {
-            const response = await axios.get(url, {headers: {"Content-Encoding": "gzip"}});
-            this.logger.info(`RedCedarsData: GET response: ${response.status}`);
-            rawJson = response.data;
-        } catch(e) {
-            this.logger.warn(`RedCedarsData: Error getting data: ${e}`);
-            return null;
-        }
-        
-        let currentStationData: StationData;
+        const options: AxiosRequestConfig = {
+            responseType: "json",
+            headers: {                        
+                "Content-Encoding": "gzip"
+            },
+            timeout: 2000
+        };
 
-        if (rawJson !== null && rawJson.length > 0) {
-            // We only need the newest element
-            currentStationData = rawJson[0];
-            
-            if (currentStationData.tempf !== undefined)      currentStationData.tempf      = Math.round(currentStationData.tempf);
-            if (currentStationData.tempinf !== undefined)    currentStationData.tempinf    = Math.round(currentStationData.tempinf);
-            if (currentStationData.temp2f !== undefined)     currentStationData.temp2f     = Math.round(currentStationData.temp2f);
-            if (currentStationData.temp3f !== undefined)     currentStationData.temp3f     = Math.round(currentStationData.temp3f);
-            if (currentStationData.dewPoint !== undefined)   currentStationData.dewPoint   = Math.round(currentStationData.dewPoint);
-            if (currentStationData.dewPointin !== undefined) currentStationData.dewPointin = Math.round(currentStationData.dewPointin);
-            if (currentStationData.dewPoint2 !== undefined)  currentStationData.dewPoint2  = Math.round(currentStationData.dewPoint2);
-            if (currentStationData.dewPoint3 !== undefined)  currentStationData.dewPoint3  = Math.round(currentStationData.dewPoint3);
-        } else {
-            this.logger.warn("RedCedarsData: No data from station");
+        this.logger.verbose(`RedCedarsData fetching url: ${url}`);
+
+        await axios.get(url, options)
+            .then((res: AxiosResponse) => {
+                this.logger.verbose(`RedCedarsData: GET response: ${res.status}`);
+                rawJson = res.data;
+            })
+            .catch((error) => {
+                this.logger.warn(`RedCedarsData: Failed to get data ${error})`);
+                return null;
+            });
+        
+        if (rawJson === null || rawJson.length == 0) {
+            this.logger.warn("RedCedarsData: Response had no telemetry data");
             return null;
         }
+
+        // We only need the newest element
+        const currentStationData: StationData = rawJson[0];
+        
+        if (currentStationData.tempf !== undefined)      currentStationData.tempf      = Math.round(currentStationData.tempf);
+        if (currentStationData.tempinf !== undefined)    currentStationData.tempinf    = Math.round(currentStationData.tempinf);
+        if (currentStationData.temp2f !== undefined)     currentStationData.temp2f     = Math.round(currentStationData.temp2f);
+        if (currentStationData.temp3f !== undefined)     currentStationData.temp3f     = Math.round(currentStationData.temp3f);
+        if (currentStationData.dewPoint !== undefined)   currentStationData.dewPoint   = Math.round(currentStationData.dewPoint);
+        if (currentStationData.dewPointin !== undefined) currentStationData.dewPointin = Math.round(currentStationData.dewPointin);
+        if (currentStationData.dewPoint2 !== undefined)  currentStationData.dewPoint2  = Math.round(currentStationData.dewPoint2);
+        if (currentStationData.dewPoint3 !== undefined)  currentStationData.dewPoint3  = Math.round(currentStationData.dewPoint3);
 
         const windDir: number = currentStationData.winddir_avg10m;
         

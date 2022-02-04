@@ -18,20 +18,20 @@ export class RedCedarsBuilder {
 
     public async CreateImages(url: string): Promise<boolean>{
         try {
-            const weatherImage: RedCedarsImage = new RedCedarsImage(this.logger);
+            const redCedarsImage: RedCedarsImage = new RedCedarsImage(this.logger);
 
-            const result = await weatherImage.getImage(url);
+            const result = await redCedarsImage.getImage(url);
+            const fileName = "redcedars.jpg";
 
-            if (result !== null && result.imageData !== null ) {
-                const fileName = "redcedars.jpg";
+            if (result !== null && result.imageData !== null ) {                
                 this.logger.info(`CreateImages: Writing: ${fileName}`);
                 this.writer.saveFile(fileName, result.imageData.data);
             } else {
-                this.logger.error("CreateImages: No imageData returned from weatherImage.getImage");
+                this.logger.warn(`RedCedarsBuilder: Could not write: ${fileName}`);
                 return false;
             }
         } catch (e) {
-            this.logger.error(`CreateImages: Exception: ${e}`);
+            this.logger.error(`RedCedarsBuilder: Exception: ${e}`);
             return false;
         }
 
