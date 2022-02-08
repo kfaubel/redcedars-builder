@@ -32,22 +32,25 @@ export class RedCedarsData {
 
     public async getStationData(url: string): Promise<StationData | null> { 
         // Return from GET call is an array of 288 StationData element.  We only need the last one.
-        let rawJson: Array<StationData> | null = [];
+        let rawJson: Array<StationData> | null = null;
 
         const options: AxiosRequestConfig = {
             responseType: "json",
             headers: {                        
                 "Content-Encoding": "gzip"
             },
-            timeout: 2000
+            timeout: 10000
         };
 
         this.logger.verbose(`RedCedarsData fetching url: ${url}`);
 
+        const startTime = new Date();
         await axios.get(url, options)
             .then((res: AxiosResponse) => {
                 this.logger.verbose(`RedCedarsData: GET response: ${res.status}`);
-                rawJson = res.data;
+                const endTime = new Date();
+                this.logger.info(`RedCedarsData: GET TIME: ${endTime.getTime() - startTime.getTime()}ms`);
+                rawJson = res.data as Array<StationData>;
             })
             .catch((error) => {
                 this.logger.warn(`RedCedarsData: Failed to get data ${error})`);
@@ -56,7 +59,8 @@ export class RedCedarsData {
         if (rawJson === null) {
             return null;
         }
-        if (rawJson.length == 0) {
+
+        if (typeof rawJson[0] === "undefined") {
             this.logger.warn("RedCedarsData: Response had no telemetry data");
             return null;
         }
