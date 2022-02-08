@@ -51,10 +51,12 @@ export class RedCedarsData {
             })
             .catch((error) => {
                 this.logger.warn(`RedCedarsData: Failed to get data ${error})`);
-                return null;
             });
         
-        if (rawJson === null || rawJson.length == 0) {
+        if (rawJson === null) {
+            return null;
+        }
+        if (rawJson.length == 0) {
             this.logger.warn("RedCedarsData: Response had no telemetry data");
             return null;
         }
