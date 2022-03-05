@@ -39,7 +39,7 @@ export class RedCedarsData {
             headers: {                        
                 "Content-Encoding": "gzip"
             },
-            timeout: 10000
+            timeout: 20000
         };
 
         this.logger.verbose(`RedCedarsData fetching url: ${url}`);
@@ -47,9 +47,10 @@ export class RedCedarsData {
         const startTime = new Date();
         await axios.get(url, options)
             .then((res: AxiosResponse) => {
+                if (typeof process.env.TRACK_GET_TIMES !== "undefined" ) {
+                    this.logger.info(`WebImageImage: GET TIME: ${new Date().getTime() - startTime.getTime()}ms`);
+                }
                 this.logger.verbose(`RedCedarsData: GET response: ${res.status}`);
-                const endTime = new Date();
-                this.logger.info(`RedCedarsData: GET TIME: ${endTime.getTime() - startTime.getTime()}ms`);
                 rawJson = res.data as Array<StationData>;
             })
             .catch((error) => {
