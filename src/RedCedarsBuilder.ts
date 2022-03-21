@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { LoggerInterface } from "./Logger";
@@ -30,8 +31,9 @@ export class RedCedarsBuilder {
                 this.logger.warn(`RedCedarsBuilder: Could not write: ${fileName}`);
                 return false;
             }
-        } catch (e) {
+        } catch (e: any) {
             this.logger.error(`RedCedarsBuilder: Exception: ${e}`);
+            this.logger.error(e.stack);
             return false;
         }
 

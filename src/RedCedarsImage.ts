@@ -5,6 +5,7 @@ import path from "path";
 import * as pure from "pureimage";
 import { RedCedarsData, StationData } from "./RedCedarsData";
 import { LoggerInterface } from "./Logger";
+import moment from "moment-timezone";  // https://momentjs.com/timezone/docs/ &  https://momentjs.com/docs/
 
 export interface ImageResult {
     imageType: string;
@@ -137,25 +138,31 @@ export class RedCedarsImage {
         ctx.fillText("Rain Today",         labelX,       dailyRainY);
         ctx.fillText("UV Index",           labelX,       uvIndexY);
 
+        const tempfStr        = (stationData.tempf === -99)         ? "" : `${stationData.tempf}\u00B0`;
+        const dewPointStr     = (stationData.dewPoint === -99)      ? "" : `${stationData.dewPoint} ${stationData.dpLabel}`;
+        const hourlyraininStr = (stationData.hourlyrainin === -99)  ? "" : `${stationData.hourlyrainin.toFixed(2)} in/hr`;
+        const dailyraininStr  = (stationData.dailyrainin === -99)   ? "" : `${stationData.dailyrainin.toFixed(2)} in`;
+        const uvStr           = (stationData.uv === -99)            ? "" : `${stationData.uv} ${stationData.uvLabel}`;
+
         // Fill in the data values, some values may be undefined if the optional sensors do not respond
-        const dpLabel = (stationData.dpLabel !== "") ? `(${stationData.dpLabel})` : "";
-        const uvLabel = (stationData.uvLabel !== "") ? `(${stationData.uvLabel})` : "";
-        ctx.fillText(`${stationData.tempf}\u00B0`,                     valueX,       outsideTempY);
-        ctx.fillText(`${stationData.dewPoint} ${dpLabel}`,             valueX,       dewPointY);
-        ctx.fillText(`${stationData.hourlyrainin.toFixed(2)} in/hr`,   valueX,       hourlyRainY);
-        ctx.fillText(`${stationData.dailyrainin.toFixed(2)} in`,       valueX,       dailyRainY);
-        ctx.fillText(`${stationData.uv} ${uvLabel}`,                   valueX,       uvIndexY);
+        
+        ctx.fillText(tempfStr,            valueX,       outsideTempY);
+        ctx.fillText(dewPointStr,         valueX,       dewPointY);
+        ctx.fillText(hourlyraininStr,     valueX,       hourlyRainY);
+        ctx.fillText(dailyraininStr,      valueX,       dailyRainY);
+        ctx.fillText(uvStr,               valueX,       uvIndexY);
         
         ctx.fillStyle = titleColor;
         ctx.fillText("Inside Temp:",      titleX2,       insideLabelY);
+
         ctx.fillStyle = textColor;
         ctx.fillText("Upstairs",          labelX2,       upstairsTempY);
         ctx.fillText("First Floor",       labelX2,       insideTempY);
         ctx.fillText("Cellar",            labelX2,       cellarTempY);
 
-        ctx.fillText(`${stationData.temp2f === undefined ? "-" : stationData.temp2f}\u00B0`,      valueX2,       upstairsTempY);
-        ctx.fillText(`${stationData.tempinf === undefined ? "-" : stationData.tempinf}\u00B0`,    valueX2,       insideTempY);
-        ctx.fillText(`${stationData.temp3f === undefined ? "-" : stationData.temp3f}\u00B0`,      valueX2,       cellarTempY);
+        ctx.fillText(`${stationData.temp2f === -99  ? "-" : stationData.temp2f}\u00B0`,      valueX2,       upstairsTempY);
+        ctx.fillText(`${stationData.tempinf === -99 ? "-" : stationData.tempinf}\u00B0`,     valueX2,       insideTempY);
+        ctx.fillText(`${stationData.temp3f === -99  ? "-" : stationData.temp3f}\u00B0`,      valueX2,       cellarTempY);
         
         // Draw the wind graphic
         const windCenterX = 500;
@@ -168,11 +175,16 @@ export class RedCedarsImage {
         ctx.arc(windCenterX, windCenterY, windRadius, 0, 2 * Math.PI); // Pure 0.3.5 warns on this
         ctx.stroke();
 
-        const windSpeed = stationData.windspdmph_avg10m;
-        const windGust = stationData.windgustmph;
+        let windSpeedStr = "";
+        if (stationData.windspdmph_avg10m !== -99) {
+            windSpeedStr = stationData.windspdmph_avg10m < 10 ? stationData.windspdmph_avg10m.toFixed(1) : stationData.windspdmph_avg10m.toFixed(0);
 
-        const windSpeedStr = windSpeed < 10 ? windSpeed.toFixed(1) : windSpeed.toFixed(0);
-        const windGustStr  = "Gust: " + (windGust < 10  ? windGust.toFixed(1)  : windGust.toFixed(0));
+        }
+        let windGustStr = "";
+        if (stationData.windgustmph !== -99) {
+            windGustStr = "Gust: " + (stationData.windgustmph < 10 ? stationData.windgustmph.toFixed(1) : stationData.windgustmph.toFixed(0));
+
+        }
         
         let width: number; // Used multiple times below
         
@@ -220,7 +232,7 @@ export class RedCedarsImage {
             ctx.stroke();
         }
 
-        if (stationData.winddir_avg10m !== -1) {
+        if (stationData.winddir_avg10m !== -99) {
         // Draw the wind direction arrow
             ctx.rotate((stationData.winddir_avg10m -90) * Math.PI/180);
             ctx.fillStyle = arrowColor;
@@ -235,21 +247,26 @@ export class RedCedarsImage {
         ctx.restore();
 
         // Add the note at the bottom with the update time
-        if (stationData.updateTime !== "") {
-            const updateDate = new Date(stationData.updateTime);
-            const now = new Date();
+        if (stationData.date !== "") {
+            const updateMoment = moment(stationData.date).tz("America/New_York");
+            const nowMoment = moment().tz("America/New_York");
+            //const updateDate = new Date(stationData.updateTime);
+            //const now = new Date();
             ctx.font = extraSmallFont;
-            if ((now.getTime() - updateDate.getTime()) > 60 * 60 * 1000) {
+            if ((nowMoment.valueOf() - updateMoment.valueOf()) > 60 * 60 * 1000) {
                 ctx.fillStyle = alertColor;
-                ctx.fillText(`Updated: ${stationData.updateTime} (old)`, imageWidth - 750, imageHeight - 20);
-            } else {
+                ctx.fillText(`Updated: ${updateMoment.format("MMM D, YYYY h:mm A")} (old)`, titleX2, imageHeight - 20);
+            } else if (stationData.outsideReading) {
                 ctx.fillStyle = textColor;
-                ctx.fillText(`Updated: ${stationData.updateTime}`, imageWidth - 750, imageHeight - 20);
+                ctx.fillText(`Updated: ${updateMoment.format("MMM D, YYYY h:mm A")}`, titleX2, imageHeight - 20);
+            } else {
+                ctx.fillStyle = alertColor;
+                ctx.fillText(`Updated: ${updateMoment.format("MMM D, YYYY h:mm A")} (No outside readings)`, titleX2, imageHeight - 20);
             }
         } else {
             ctx.font = extraSmallFont;
             ctx.fillStyle = alertColor;
-            ctx.fillText("No station data", imageWidth - 750, imageHeight - 20);
+            ctx.fillText("No station data", titleX2, imageHeight - 20);
         }
 
         const jpegImg = jpeg.encode(img, 80);

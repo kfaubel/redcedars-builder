@@ -2,8 +2,8 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { LoggerInterface } from "./Logger";
 
 export interface StationData {
+    date: string;                  // Reading from the station
     dateutc: number;
-    updateTime: string;            // localtime station last reported
     tempinf?: number;
     dewPointin?: number;
     temp2f?: number;
@@ -21,6 +21,7 @@ export interface StationData {
     windDirPoint: string;         // N, NNE, ...
     uv: number;
     uvLabel: string;              // Low, Medium, ...
+    outsideReading: boolean;      // true if we have outside readings
 }
 
 export class RedCedarsData {
@@ -68,18 +69,26 @@ export class RedCedarsData {
 
         // We only need the newest element
         const currentStationData: StationData = rawJson[0];
-        
-        if (currentStationData.tempf !== undefined)      currentStationData.tempf      = Math.round(currentStationData.tempf);
-        if (currentStationData.tempinf !== undefined)    currentStationData.tempinf    = Math.round(currentStationData.tempinf);
-        if (currentStationData.temp2f !== undefined)     currentStationData.temp2f     = Math.round(currentStationData.temp2f);
-        if (currentStationData.temp3f !== undefined)     currentStationData.temp3f     = Math.round(currentStationData.temp3f);
-        if (currentStationData.dewPoint !== undefined)   currentStationData.dewPoint   = Math.round(currentStationData.dewPoint);
-        if (currentStationData.dewPointin !== undefined) currentStationData.dewPointin = Math.round(currentStationData.dewPointin);
-        if (currentStationData.dewPoint2 !== undefined)  currentStationData.dewPoint2  = Math.round(currentStationData.dewPoint2);
-        if (currentStationData.dewPoint3 !== undefined)  currentStationData.dewPoint3  = Math.round(currentStationData.dewPoint3);
 
-        const windDir: number = currentStationData.winddir_avg10m;
+        currentStationData.outsideReading = (currentStationData.tempf !== undefined);
         
+        currentStationData.tempf       = (currentStationData.tempf !== undefined)       ? Math.round(currentStationData.tempf)      : -99;
+        currentStationData.tempinf     = (currentStationData.tempinf !== undefined)     ? Math.round(currentStationData.tempinf)    : -99;
+        currentStationData.temp2f      = (currentStationData.temp2f !== undefined)      ? Math.round(currentStationData.temp2f)     : -99;
+        currentStationData.temp3f      = (currentStationData.temp3f !== undefined)      ? Math.round(currentStationData.temp3f)     : -99;
+        currentStationData.dewPoint    = (currentStationData.dewPoint !== undefined)    ? Math.round(currentStationData.dewPoint)   : -99;
+        currentStationData.dewPointin  = (currentStationData.dewPointin !== undefined)  ? Math.round(currentStationData.dewPointin) : -99;
+        currentStationData.dewPoint2   = (currentStationData.dewPoint2 !== undefined)   ? Math.round(currentStationData.dewPoint2)  : -99;
+        currentStationData.dewPoint3   = (currentStationData.dewPoint3 !== undefined)   ? Math.round(currentStationData.dewPoint3)  : -99;
+        
+        currentStationData.hourlyrainin      = currentStationData.hourlyrainin      ?? -99;
+        currentStationData.dailyrainin       = currentStationData.dailyrainin       ?? -99;
+        currentStationData.uv                = currentStationData.uv                ?? -99;
+        currentStationData.winddir_avg10m    = currentStationData.winddir_avg10m    ?? -99;
+        currentStationData.windspdmph_avg10m = currentStationData.windspdmph_avg10m ?? -99;
+        currentStationData.windgustmph       = currentStationData.windgustmph       ?? -99;
+        
+        const windDir: number = currentStationData.winddir_avg10m ;
         // Calculate one of the 16 compass points based on the direction in degrees
         // 360/16 = 22
         if (windDir === -1)     {currentStationData.windDirPoint = "";} 
@@ -102,7 +111,7 @@ export class RedCedarsData {
         else                    {currentStationData.windDirPoint = "N";}
         
         // Determine the dew point label
-        if (currentStationData.dewPoint === 0) {
+        if (currentStationData.dewPoint === -99) {
             currentStationData.dpLabel  = "";  
         } else if (currentStationData.dewPoint < 55) {
             currentStationData.dpLabel  = "dry";  
@@ -117,7 +126,7 @@ export class RedCedarsData {
         }
 
         // Determine the UV label
-        if (currentStationData.uv === 0) {
+        if (currentStationData.uv === -99) {
             currentStationData.uvLabel  = "";  
         } else if (currentStationData.uv <= 2) {
             currentStationData.uvLabel  = "low";  
@@ -130,10 +139,6 @@ export class RedCedarsData {
         } else {
             currentStationData.uvLabel  = "danger";
         } 
-
-        // Format the update time and add it
-        const updateTime = new Date(currentStationData.dateutc);
-        currentStationData.updateTime = updateTime.toLocaleString();
 
         return currentStationData;
     }
